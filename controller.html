@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Phone Controller</title>
+
+<style>
+
+body{
+margin:0;
+background:#111;
+overflow:hidden;
+display:flex;
+justify-content:center;
+align-items:center;
+height:100vh;
+}
+
+#pad{
+width:90vw;
+height:90vh;
+background:#222;
+border-radius:20px;
+touch-action:none;
+}
+
+</style>
+
+</head>
+<body>
+
+<div id="pad"></div>
+
+<script type="module">
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+
+import {
+getDatabase,
+ref,
+set
+}
+
+from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+const firebaseConfig = {
+
+apiKey: "AIzaSyCzMfufMKKbFrlfGJed7qNws_TxdMfs1gs",
+
+authDomain: "tv-controllerbysiva.firebaseapp.com",
+
+databaseURL: "https://tv-controllerbysiva-default-rtdb.firebaseio.com/",
+
+projectId: "tv-controllerbysiva",
+
+storageBucket: "tv-controllerbysiva.appspot.com",
+
+messagingSenderId: "465038654438",
+
+appId: "1:465038654438:web:92839d8e5ce222dc643427"
+
+};
+
+const app = initializeApp(firebaseConfig);
+
+const db = getDatabase(app);
+
+document.body.addEventListener("touchmove",(e)=>{
+
+const touch=e.touches[0];
+
+set(ref(db,"cursor"),{
+
+x:touch.clientX,
+y:touch.clientY
+
+});
+
+console.log("sent");
+
+});
+
+</script>
+
+</body>
+</html>
