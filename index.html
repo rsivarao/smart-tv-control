@@ -10,6 +10,7 @@ body{
 margin:0;
 overflow:hidden;
 background:black;
+cursor:none;
 }
 
 #cursor{
@@ -18,10 +19,9 @@ height:30px;
 background:white;
 border-radius:50%;
 position:absolute;
-left:100px;
-top:100px;
+left:300px;
+top:300px;
 box-shadow:0 0 20px white;
-transition:0.03s;
 }
 
 h1{
@@ -30,6 +30,7 @@ position:absolute;
 top:20px;
 left:20px;
 font-family:Arial;
+font-size:28px;
 }
 
 </style>
@@ -43,14 +44,14 @@ font-family:Arial;
 
 <script type="module">
 
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { initializeApp }
+from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 
 import {
 getDatabase,
 ref,
 onValue
 }
-
 from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
 const firebaseConfig = {
@@ -80,20 +81,22 @@ const cursor=document.getElementById("cursor");
 let x=300;
 let y=300;
 
+const sensitivity=1.4;
+
 onValue(ref(db,"move"),(snapshot)=>{
 
 const data=snapshot.val();
 
 if(!data)return;
 
-x+=data.dx*2;
-y+=data.dy*2;
+x += data.dx * sensitivity;
+y += data.dy * sensitivity;
 
-x=Math.max(0,Math.min(window.innerWidth-30,x));
-y=Math.max(0,Math.min(window.innerHeight-30,y));
+x = Math.max(0,Math.min(window.innerWidth-30,x));
+y = Math.max(0,Math.min(window.innerHeight-30,y));
 
-cursor.style.left=x+"px";
-cursor.style.top=y+"px";
+cursor.style.left = x + "px";
+cursor.style.top = y + "px";
 
 });
 
