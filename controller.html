@@ -23,6 +23,12 @@ height:90vh;
 background:#222;
 border-radius:20px;
 border:2px solid #444;
+display:flex;
+justify-content:center;
+align-items:center;
+color:white;
+font-family:Arial;
+font-size:24px;
 }
 
 </style>
@@ -30,7 +36,9 @@ border:2px solid #444;
 </head>
 <body>
 
-<div id="pad"></div>
+<div id="pad">
+Touch And Drag
+</div>
 
 <script type="module">
 
@@ -66,12 +74,13 @@ const app = initializeApp(firebaseConfig);
 
 const db = getDatabase(app);
 
-const pad=document.getElementById("pad");
-
 let lastX=0;
 let lastY=0;
+let touching=false;
 
-pad.addEventListener("touchstart",(e)=>{
+document.addEventListener("touchstart",(e)=>{
+
+touching=true;
 
 const touch=e.touches[0];
 
@@ -80,7 +89,15 @@ lastY=touch.clientY;
 
 });
 
-pad.addEventListener("touchmove",(e)=>{
+document.addEventListener("touchend",()=>{
+
+touching=false;
+
+});
+
+document.addEventListener("touchmove",(e)=>{
+
+if(!touching)return;
 
 e.preventDefault();
 
@@ -95,7 +112,8 @@ lastY=touch.clientY;
 set(ref(db,"move"),{
 
 dx:dx,
-dy:dy
+dy:dy,
+time:Date.now()
 
 });
 
