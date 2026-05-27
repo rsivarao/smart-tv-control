@@ -65,14 +65,32 @@ const app = initializeApp(firebaseConfig);
 
 const db = getDatabase(app);
 
+let lastX=0;
+let lastY=0;
+
+document.body.addEventListener("touchstart",(e)=>{
+
+lastX=e.touches[0].clientX;
+lastY=e.touches[0].clientY;
+
+});
+
 document.body.addEventListener("touchmove",(e)=>{
 
 const touch=e.touches[0];
 
-set(ref(db,"cursor"),{
+const dx=touch.clientX-lastX;
+const dy=touch.clientY-lastY;
 
-x:touch.clientX,
-y:touch.clientY
+lastX=touch.clientX;
+lastY=touch.clientY;
+
+set(ref(db,"move"),{
+
+dx:dx,
+dy:dy
+
+});
 
 });
 
