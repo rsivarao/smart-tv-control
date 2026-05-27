@@ -77,17 +77,23 @@ const db = getDatabase(app);
 
 const cursor=document.getElementById("cursor");
 
-onValue(ref(db,"cursor"),(snapshot)=>{
+let x=300;
+let y=300;
+
+onValue(ref(db,"move"),(snapshot)=>{
 
 const data=snapshot.val();
 
-console.log(data);
-
 if(!data)return;
 
-cursor.style.left=data.x+"px";
+x+=data.dx*2;
+y+=data.dy*2;
 
-cursor.style.top=data.y+"px";
+x=Math.max(0,Math.min(window.innerWidth-30,x));
+y=Math.max(0,Math.min(window.innerHeight-30,y));
+
+cursor.style.left=x+"px";
+cursor.style.top=y+"px";
 
 });
 
