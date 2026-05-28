@@ -8,28 +8,53 @@ startTVMode();
 startPhoneMode();
 }
 
-function generateRoomId(){
-return crypto.randomUUID().slice(0,8);
+function getTVId(){
+
+let savedId=localStorage.getItem('tvId');
+
+if(savedId)return savedId;
+
+savedId='tv-'+crypto.randomUUID().slice(0,8);
+
+localStorage.setItem('tvId',savedId);
+
+return savedId;
+
 }
 
 function startTVMode(){
 
-const roomId=generateRoomId();
-
-localStorage.setItem('currentTV',roomId);
+const roomId=getTVId();
 
 app.innerHTML=`
 
 <div class="tv-screen">
 
+<h2 id="status"
+style="
+position:absolute;
+top:20px;
+right:20px;
+font-size:22px;
+color:#aaa;
+font-family:Arial;
+z-index:20;
+">
+Waiting For Connection...
+</h2>
+
 <div class="qr-box">
-<h1 class="tv-title">Smart TV Remote</h1>
+
+<h1 class="tv-title">
+Smart TV Remote
+</h1>
 
 <div id="qrcode"></div>
 
 <div class="room-id">
 TV ID: ${roomId}
 </div>
+
 </div>
 
 <div class="cursor" id="cursor"></div>
@@ -38,22 +63,69 @@ TV ID: ${roomId}
 
 `;
 
+const status=document.getElementById('status');
+
 const cursor=document.getElementById('cursor');
 
 let x=300;
 let y=300;
 
+const sensitivity=1.4;
+
 const peer=new Peer(roomId);
+
+peer.on('open',()=>{
+
+status.innerText='TV Ready';
+
+console.log('TV Ready');
+
+});
+
+peer.on('error',(err)=>{
+
+status.innerText='Peer Error';
+
+console.log(err);
+
+});
 
 peer.on('connection',(conn)=>{
 
+status.innerText='Phone Connected';
+
+console.log('Phone Connected');
+
+conn.on('close',()=>{
+
+status.innerText='Disconnected';
+
+});
+
+conn.on('error',(err)=>{
+
+status.innerText='Connection Error';
+
+console.log(err);
+
+});
+
 conn.on('data',(data)=>{
 
-x+=data.dx*1.4;
-y+=data.dy*1.4;
+if(!data)return;
 
-x=Math.max(0,Math.min(window.innerWidth-24,x));
-y=Math.max(0,Math.min(window.innerHeight-24,y));
+x+=data.dx*sensitivity;
+y+=data.dy*sensitivity;
+
+x=Math.max(
+0,
+Math.min(window.innerWidth-24,x)
+);
+
+y=Math.max(
+0,
+Math.min(window.innerHeight-24,y)
+);
 
 cursor.style.left=x+'px';
 cursor.style.top=y+'px';
@@ -63,20 +135,31 @@ cursor.style.top=y+'px';
 });
 
 createQR(roomId);
+
 }
 
 function startPhoneMode(){
 
-const savedTVs=JSON.parse(localStorage.getItem('pairedTVs')||'[]');
+const savedTVs=
+JSON.parse(
+localStorage.getItem('pairedTVs')||'[]'
+);
 
 let savedHTML='';
 
 savedTVs.forEach(tv=>{
+
 savedHTML+=`
-<div class="saved-tv" onclick="connectToTV('${tv.id}')">
+
+<div class="saved-tv"
+onclick="connectToTV('${tv.id}')">
+
 ${tv.name}
+
 </div>
+
 `;
+
 });
 
 app.innerHTML=`
@@ -84,11 +167,15 @@ app.innerHTML=`
 <div class="controller-screen">
 
 <div class="saved-tv-list">
+
 ${savedHTML}
+
 </div>
 
 <div class="touchpad" id="touchpad">
+
 Touch And Drag
+
 </div>
 
 </div>
@@ -98,44 +185,67 @@ Touch And Drag
 const roomId=prompt('Enter TV ID');
 
 if(roomId){
+
 connectToTV(roomId);
+
 }
+
 }
 
 function connectToTV(roomId){
 
 const peer=new Peer();
 
+peer.on('open',()=>{
+
+console.log('Phone Peer Ready');
+
 const conn=peer.connect(roomId);
 
-const existing=JSON.parse(localStorage.getItem('pairedTVs')||'[]');
+conn.on('open',()=>{
 
-const exists=existing.find(tv=>tv.id===roomId);
+console.log('Connected To TV');
 
-if(!exists){
+saveTV(roomId);
 
-existing.push({
-id:roomId,
-name:'Samsung TV '+roomId
+setupTouchpad(conn);
+
 });
 
-localStorage.setItem('pairedTVs',JSON.stringify(existing));
+conn.on('close',()=>{
+
+alert('Disconnected');
+
+});
+
+conn.on('error',(err)=>{
+
+alert('Connection Failed');
+
+console.log(err);
+
+});
+
+});
+
 }
+
+function setupTouchpad(conn){
+
+const pad=document.getElementById('touchpad');
 
 let lastX=0;
 let lastY=0;
 let touching=false;
 
-const pad=document.getElementById('touchpad');
-
 pad.addEventListener('touchstart',(e)=>{
+
+touching=true;
 
 const touch=e.touches[0];
 
 lastX=touch.clientX;
 lastY=touch.clientY;
-
-touching=true;
 
 });
 
@@ -149,6 +259,8 @@ pad.addEventListener('touchmove',(e)=>{
 
 if(!touching)return;
 
+e.preventDefault();
+
 const touch=e.touches[0];
 
 const dx=touch.clientX-lastX;
@@ -158,11 +270,40 @@ lastX=touch.clientX;
 lastY=touch.clientY;
 
 conn.send({
+
 dx,
-dy
+dy,
+time:Date.now()
+
 });
 
 });
+
+}
+
+function saveTV(roomId){
+
+let existing=
+JSON.parse(
+localStorage.getItem('pairedTVs')||'[]'
+);
+
+const found=existing.find(tv=>tv.id===roomId);
+
+if(found)return;
+
+existing.push({
+
+id:roomId,
+name:'Samsung TV'
+
+});
+
+localStorage.setItem(
+'pairedTVs',
+JSON.stringify(existing)
+);
+
 }
 
 function createQR(text){
@@ -170,7 +311,11 @@ function createQR(text){
 const qr=document.getElementById('qrcode');
 
 qr.innerHTML=`
-<img src="https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=${text}">
+
+<img
+src="https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=${text}"
+>
+
 `;
 
 }
