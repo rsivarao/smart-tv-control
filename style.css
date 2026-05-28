@@ -16,7 +16,9 @@ width:100vw;
 height:100vh;
 }
 
+/* ========================= */
 /* TV MODE */
+/* ========================= */
 
 .tv-screen{
 width:100%;
@@ -49,9 +51,12 @@ background:white;
 position:absolute;
 left:300px;
 top:300px;
-box-shadow:0 0 18px white;
+box-shadow:
+0 0 18px white,
+0 0 40px rgba(255,255,255,0.4);
 pointer-events:none;
 z-index:1000;
+transition:0.03s linear;
 }
 
 .qr-box{
@@ -72,6 +77,15 @@ pointer-events:none;
 margin-top:10px;
 color:#999;
 font-size:18px;
+}
+
+#status{
+position:absolute;
+top:25px;
+right:320px;
+font-size:22px;
+color:#aaa;
+z-index:20;
 }
 
 .launcher{
@@ -114,7 +128,63 @@ box-shadow:
 0 0 60px rgba(255,255,255,0.2);
 }
 
+/* ========================= */
+/* GAME UI */
+/* ========================= */
+
+.game-screen{
+position:absolute;
+inset:0;
+background:
+linear-gradient(
+to bottom,
+#101010,
+#050505
+);
+display:none;
+justify-content:center;
+align-items:center;
+flex-direction:column;
+z-index:50;
+}
+
+.game-screen.active{
+display:flex;
+}
+
+.game-player{
+width:120px;
+height:120px;
+background:white;
+border-radius:20px;
+position:absolute;
+left:45%;
+top:45%;
+transition:0.03s linear;
+box-shadow:
+0 0 25px rgba(255,255,255,0.5);
+}
+
+.game-title{
+position:absolute;
+top:40px;
+font-size:48px;
+font-weight:bold;
+}
+
+.back-button{
+position:absolute;
+top:30px;
+left:30px;
+padding:14px 22px;
+background:#222;
+border-radius:14px;
+font-size:20px;
+}
+
+/* ========================= */
 /* PHONE MODE */
+/* ========================= */
 
 .controller-screen{
 width:100%;
@@ -123,6 +193,7 @@ display:flex;
 justify-content:center;
 align-items:center;
 background:#111;
+position:relative;
 }
 
 .touchpad{
@@ -137,6 +208,7 @@ align-items:center;
 font-size:28px;
 color:#888;
 touch-action:none;
+user-select:none;
 }
 
 .saved-tv-list{
@@ -154,4 +226,74 @@ padding:14px 20px;
 background:#222;
 border-radius:14px;
 font-size:18px;
+}
+
+.gesture-info{
+position:absolute;
+bottom:20px;
+left:50%;
+transform:translateX(-50%);
+font-size:16px;
+color:#777;
+text-align:center;
+line-height:1.6;
+}
+
+/* ========================= */
+/* GAME CONTROLLER */
+/* ========================= */
+
+.game-controls{
+position:absolute;
+inset:0;
+display:none;
+pointer-events:none;
+}
+
+.game-controls.active{
+display:block;
+}
+
+.joystick-zone{
+position:absolute;
+left:40px;
+bottom:40px;
+width:220px;
+height:220px;
+border-radius:50%;
+background:rgba(255,255,255,0.06);
+pointer-events:auto;
+touch-action:none;
+}
+
+.joystick-stick{
+position:absolute;
+left:70px;
+top:70px;
+width:80px;
+height:80px;
+border-radius:50%;
+background:white;
+}
+
+.ab-buttons{
+position:absolute;
+right:40px;
+bottom:60px;
+display:grid;
+grid-template-columns:repeat(2,90px);
+gap:20px;
+pointer-events:auto;
+}
+
+.game-btn{
+width:90px;
+height:90px;
+border-radius:50%;
+background:#222;
+display:flex;
+justify-content:center;
+align-items:center;
+font-size:28px;
+border:2px solid #555;
 }
