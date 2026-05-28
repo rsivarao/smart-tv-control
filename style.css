@@ -16,11 +16,19 @@ width:100vw;
 height:100vh;
 }
 
+/* TV MODE */
+
 .tv-screen{
 width:100%;
 height:100%;
 position:relative;
-background:black;
+background:
+linear-gradient(
+to bottom,
+#111,
+#000
+);
+overflow:hidden;
 }
 
 .cursor{
@@ -33,26 +41,59 @@ left:300px;
 top:300px;
 box-shadow:0 0 18px white;
 pointer-events:none;
+z-index:1000;
+}
+
+.launcher{
+position:absolute;
+top:120px;
+left:80px;
+right:80px;
+display:flex;
+gap:30px;
+flex-wrap:wrap;
+}
+
+.app-card{
+width:260px;
+height:150px;
+background:#1b1b1b;
+border-radius:24px;
+display:flex;
+justify-content:center;
+align-items:center;
+font-size:28px;
+transition:0.2s;
+border:3px solid transparent;
+}
+
+.app-card.active{
+transform:scale(1.08);
+border-color:white;
+box-shadow:0 0 30px rgba(255,255,255,0.4);
+}
+
+.tv-title{
+position:absolute;
+top:40px;
+left:80px;
+font-size:52px;
+font-weight:bold;
 }
 
 .qr-box{
 position:absolute;
-top:50%;
-left:50%;
-transform:translate(-50%,-50%);
+right:60px;
+top:40px;
 text-align:center;
 }
 
-.tv-title{
-font-size:42px;
-margin-bottom:25px;
+.room-id{
+margin-top:10px;
+color:#999;
 }
 
-.room-id{
-margin-top:25px;
-font-size:22px;
-color:#aaa;
-}
+/* PHONE MODE */
 
 .controller-screen{
 width:100%;
