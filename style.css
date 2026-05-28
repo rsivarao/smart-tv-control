@@ -31,6 +31,16 @@ to bottom,
 overflow:hidden;
 }
 
+.tv-title{
+position:absolute;
+top:40px;
+left:80px;
+font-size:52px;
+font-weight:bold;
+letter-spacing:1px;
+z-index:10;
+}
+
 .cursor{
 width:24px;
 height:24px;
@@ -44,53 +54,64 @@ pointer-events:none;
 z-index:1000;
 }
 
-.launcher{
-position:absolute;
-top:120px;
-left:80px;
-right:80px;
-display:flex;
-gap:30px;
-flex-wrap:wrap;
-}
-
-.app-card{
-width:260px;
-height:150px;
-background:#1b1b1b;
-border-radius:24px;
-display:flex;
-justify-content:center;
-align-items:center;
-font-size:28px;
-transition:0.2s;
-border:3px solid transparent;
-}
-
-.app-card.active{
-transform:scale(1.08);
-border-color:white;
-box-shadow:0 0 30px rgba(255,255,255,0.4);
-}
-
-.tv-title{
-position:absolute;
-top:40px;
-left:80px;
-font-size:52px;
-font-weight:bold;
-}
-
 .qr-box{
 position:absolute;
 right:60px;
 top:40px;
 text-align:center;
+transition:0.3s;
+z-index:10;
+}
+
+.qr-box.hidden{
+opacity:0;
+pointer-events:none;
 }
 
 .room-id{
 margin-top:10px;
 color:#999;
+font-size:18px;
+}
+
+.launcher{
+position:absolute;
+top:58%;
+left:50%;
+transform:translate(-50%,-50%);
+display:grid;
+grid-template-columns:repeat(3,220px);
+gap:28px;
+justify-content:center;
+align-items:center;
+z-index:5;
+}
+
+.app-card{
+width:220px;
+height:120px;
+background:
+linear-gradient(
+145deg,
+#1e1e1e,
+#111
+);
+border-radius:24px;
+display:flex;
+justify-content:center;
+align-items:center;
+font-size:28px;
+transition:0.18s;
+border:3px solid transparent;
+box-shadow:0 0 15px rgba(0,0,0,0.5);
+}
+
+.app-card.active{
+transform:scale(1.08);
+border-color:white;
+box-shadow:
+0 0 30px rgba(255,255,255,0.5),
+0 0 60px rgba(255,255,255,0.2);
 }
 
 /* PHONE MODE */
