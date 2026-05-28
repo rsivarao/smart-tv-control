@@ -8,6 +8,10 @@ startTVMode();
 startPhoneMode();
 }
 
+/* ========================= */
+/* TV ID */
+/* ========================= */
+
 function getTVId(){
 
 let savedId=localStorage.getItem('tvId');
@@ -21,6 +25,10 @@ localStorage.setItem('tvId',savedId);
 return savedId;
 
 }
+
+/* ========================= */
+/* TV MODE */
+/* ========================= */
 
 function startTVMode(){
 
@@ -44,15 +52,7 @@ TV ID: ${roomId}
 
 </div>
 
-<h2 id="status"
-style="
-position:absolute;
-top:20px;
-right:320px;
-font-size:22px;
-color:#aaa;
-z-index:20;
-">
+<h2 id="status">
 Waiting...
 </h2>
 
@@ -72,6 +72,20 @@ Waiting...
 
 </div>
 
+<div class="game-screen" id="gameScreen">
+
+<div class="back-button">
+BACK
+</div>
+
+<div class="game-title">
+GAME MODE
+</div>
+
+<div class="game-player" id="player"></div>
+
+</div>
+
 <div class="cursor" id="cursor"></div>
 
 </div>
@@ -84,6 +98,13 @@ const cursor=document.getElementById('cursor');
 
 const cards=document.querySelectorAll('.app-card');
 
+const gameScreen=document.getElementById('gameScreen');
+
+const player=document.getElementById('player');
+
+let playerX=45;
+let playerY=45;
+
 let x=300;
 let y=300;
 
@@ -95,16 +116,6 @@ peer.on('open',()=>{
 
 status.innerText='TV Ready';
 
-console.log('TV Ready');
-
-});
-
-peer.on('error',(err)=>{
-
-status.innerText='Peer Error';
-
-console.log(err);
-
 });
 
 peer.on('connection',(conn)=>{
@@ -115,25 +126,11 @@ document
 .querySelector('.qr-box')
 .classList.add('hidden');
 
-console.log('Phone Connected');
-
-conn.on('close',()=>{
-
-status.innerText='Disconnected';
-
-});
-
-conn.on('error',(err)=>{
-
-status.innerText='Connection Error';
-
-console.log(err);
-
-});
-
 conn.on('data',(data)=>{
 
 if(!data)return;
+
+/* CURSOR */
 
 if(data.type==='move'){
 
@@ -157,9 +154,43 @@ updateFocus();
 
 }
 
+/* CLICK */
+
 if(data.type==='click'){
 
 performClick();
+
+}
+
+/* SCROLL */
+
+if(data.type==='scroll'){
+
+window.scrollBy(0,data.dy*2);
+
+}
+
+/* GAME JOYSTICK */
+
+if(data.type==='joystick'){
+
+playerX+=data.dx*0.4;
+playerY+=data.dy*0.4;
+
+playerX=Math.max(0,Math.min(90,playerX));
+playerY=Math.max(0,Math.min(90,playerY));
+
+player.style.left=playerX+'%';
+player.style.top=playerY+'%';
+
+}
+
+/* GAME BUTTONS */
+
+if(data.type==='gameButton'){
+
+status.innerText=
+'Pressed '+data.button;
 
 }
 
@@ -191,7 +222,15 @@ cards.forEach(card=>{
 
 if(card.classList.contains('active')){
 
-alert(card.innerText);
+const name=card.innerText;
+
+status.innerText='Opened '+name;
+
+if(name==='Games'){
+
+gameScreen.classList.add('active');
+
+}
 
 }
 
@@ -202,6 +241,10 @@ alert(card.innerText);
 createQR(roomId);
 
 }
+
+/* ========================= */
+/* PHONE MODE */
+/* ========================= */
 
 function startPhoneMode(){
 
@@ -243,6 +286,34 @@ Touchpad
 
 </div>
 
+<div class="game-controls" id="gameControls">
+
+<div class="joystick-zone" id="joystick">
+
+<div class="joystick-stick" id="stick"></div>
+
+</div>
+
+<div class="ab-buttons">
+
+<div class="game-btn">A</div>
+<div class="game-btn">B</div>
+<div class="game-btn">X</div>
+<div class="game-btn">Y</div>
+
+</div>
+
+</div>
+
+<div class="gesture-info">
+
+Tap = Click<br>
+Double Tap = Double Click<br>
+Hold = Long Press<br>
+Two Fingers = Scroll
+
+</div>
+
 </div>
 
 `;
@@ -257,37 +328,25 @@ connectToTV(roomId);
 
 }
 
+/* ========================= */
+/* CONNECT */
+/* ========================= */
+
 function connectToTV(roomId){
 
 const peer=new Peer();
 
 peer.on('open',()=>{
 
-console.log('Phone Peer Ready');
-
 const conn=peer.connect(roomId);
 
 conn.on('open',()=>{
-
-console.log('Connected To TV');
 
 saveTV(roomId);
 
 setupTouchpad(conn);
 
-});
-
-conn.on('close',()=>{
-
-alert('Disconnected');
-
-});
-
-conn.on('error',(err)=>{
-
-alert('Connection Failed');
-
-console.log(err);
+setupGameControls(conn);
 
 });
 
@@ -295,17 +354,28 @@ console.log(err);
 
 }
 
+/* ========================= */
+/* TOUCHPAD */
+/* ========================= */
+
 function setupTouchpad(conn){
 
 const pad=document.getElementById('touchpad');
 
 let lastX=0;
 let lastY=0;
+
 let touching=false;
+
+let touchStartTime=0;
+
+let lastTap=0;
 
 pad.addEventListener('touchstart',(e)=>{
 
 touching=true;
+
+touchStartTime=Date.now();
 
 const touch=e.touches[0];
 
@@ -316,7 +386,35 @@ lastY=touch.clientY;
 
 pad.addEventListener('touchend',()=>{
 
+const duration=Date.now()-touchStartTime;
+
 touching=false;
+
+if(duration<180){
+
+const now=Date.now();
+
+if(now-lastTap<300){
+
+conn.send({
+
+type:'doubleClick'
+
+});
+
+}else{
+
+conn.send({
+
+type:'click'
+
+});
+
+}
+
+lastTap=now;
+
+}
 
 });
 
@@ -325,6 +423,25 @@ pad.addEventListener('touchmove',(e)=>{
 if(!touching)return;
 
 e.preventDefault();
+
+if(e.touches.length===2){
+
+const touch=e.touches[0];
+
+const dy=touch.clientY-lastY;
+
+lastY=touch.clientY;
+
+conn.send({
+
+type:'scroll',
+dy
+
+});
+
+return;
+
+}
 
 const touch=e.touches[0];
 
@@ -338,24 +455,91 @@ conn.send({
 
 type:'move',
 dx,
-dy,
-time:Date.now()
-
-});
-
-});
-
-pad.addEventListener('click',()=>{
-
-conn.send({
-
-type:'click'
+dy
 
 });
 
 });
 
 }
+
+/* ========================= */
+/* GAME CONTROLS */
+/* ========================= */
+
+function setupGameControls(conn){
+
+const controls=document.getElementById('gameControls');
+
+const joystick=document.getElementById('joystick');
+
+const stick=document.getElementById('stick');
+
+const buttons=
+document.querySelectorAll('.game-btn');
+
+controls.classList.add('active');
+
+let centerX=0;
+let centerY=0;
+
+joystick.addEventListener('touchstart',(e)=>{
+
+const rect=joystick.getBoundingClientRect();
+
+centerX=rect.left+rect.width/2;
+centerY=rect.top+rect.height/2;
+
+});
+
+joystick.addEventListener('touchmove',(e)=>{
+
+e.preventDefault();
+
+const touch=e.touches[0];
+
+const dx=touch.clientX-centerX;
+const dy=touch.clientY-centerY;
+
+stick.style.transform=
+`translate(${dx*0.4}px,${dy*0.4}px)`;
+
+conn.send({
+
+type:'joystick',
+dx,
+dy
+
+});
+
+});
+
+joystick.addEventListener('touchend',()=>{
+
+stick.style.transform='translate(0px,0px)';
+
+});
+
+buttons.forEach(btn=>{
+
+btn.addEventListener('touchstart',()=>{
+
+conn.send({
+
+type:'gameButton',
+button:btn.innerText
+
+});
+
+});
+
+});
+
+}
+
+/* ========================= */
+/* SAVE TV */
+/* ========================= */
 
 function saveTV(roomId){
 
@@ -381,6 +565,10 @@ JSON.stringify(existing)
 );
 
 }
+
+/* ========================= */
+/* QR */
+/* ========================= */
 
 function createQR(text){
 
